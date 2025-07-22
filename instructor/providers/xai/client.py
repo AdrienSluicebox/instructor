@@ -82,7 +82,7 @@ def from_xai(
             resp = await chat.sample()
             return resp
         if mode == instructor.Mode.XAI_JSON:
-            raw, parsed = await chat.parse(response_model) # Get Raw Response too
+            raw, parsed = await chat.parse(response_model)
             parsed._raw_response = raw
             return parsed
         else:
@@ -97,7 +97,9 @@ def from_xai(
             args = resp.tool_calls[0].function.arguments
             from ...processing.function_calls import _validate_model_from_json
 
-            return _validate_model_from_json(response_model, args, None, strict)
+            parsed = _validate_model_from_json(response_model, args, None, strict)
+            parsed._raw_response = resp
+            return parsed
 
     def create(
         response_model: type[BaseModel] | None,
@@ -119,7 +121,7 @@ def from_xai(
             resp = chat.sample()
             return resp
         if mode == instructor.Mode.XAI_JSON:
-            raw, parsed = chat.parse(response_model) # Get Raw Response too
+            raw, parsed = chat.parse(response_model)
             parsed._raw_response = raw
             return parsed
         else:
@@ -134,7 +136,9 @@ def from_xai(
             args = resp.tool_calls[0].function.arguments
             from ...processing.function_calls import _validate_model_from_json
 
-            return _validate_model_from_json(response_model, args, None, strict)
+            parsed = _validate_model_from_json(response_model, args, None, strict)
+            parsed._raw_response = resp
+            return parsed
 
     if isinstance(client, AsyncClient):
         return instructor.AsyncInstructor(
