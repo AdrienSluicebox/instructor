@@ -129,13 +129,13 @@ class OpenAIProvider(BatchProvider):
                     wait_time = min(
                         5 + attempt, 15
                     )  # Progressive backoff: 5s, 6s, 7s... up to 15s
-                    print(
+                    logger.info(
                         f"Output file not ready, waiting {wait_time}s (attempt {attempt + 1}/{max_retries})..."
                     )
                     time.sleep(wait_time)
                     batch = client.batches.retrieve(batch_id)
                     if batch.output_file_id:
-                        print(f"Output file now available: {batch.output_file_id}")
+                        logger.info(f"Output file now available: {batch.output_file_id}")
                         break
                     # Check if batch failed during our wait
                     if batch.status != "completed":
@@ -185,13 +185,13 @@ class OpenAIProvider(BatchProvider):
                     wait_time = min(
                         5 + attempt, 15
                     )  # Progressive backoff: 5s, 6s, 7s... up to 15s
-                    print(
+                    logger.info(
                         f"Output file not ready, waiting {wait_time}s (attempt {attempt + 1}/{max_retries})..."
                     )
                     time.sleep(wait_time)
                     batch = client.batches.retrieve(batch_id)
                     if batch.output_file_id:
-                        print(f"Output file now available: {batch.output_file_id}")
+                        logger.info(f"Output file now available: {batch.output_file_id}")
                         break
                     # Check if batch failed during our wait
                     if batch.status != "completed":
