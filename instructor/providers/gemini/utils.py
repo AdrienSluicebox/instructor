@@ -819,6 +819,13 @@ def handle_genai_structured_outputs(
 
     generation_config = update_genai_kwargs(new_kwargs, base_config)
 
+    # Preserve labels from original config if they exist
+    original_config = new_kwargs.get("config")
+    if isinstance(original_config, dict) and "labels" in original_config:
+        generation_config["labels"] = original_config["labels"]
+    elif hasattr(original_config, "labels") and original_config.labels:
+        generation_config["labels"] = original_config.labels
+
     new_kwargs["config"] = types.GenerateContentConfig(**generation_config)
     new_kwargs.pop("response_model", None)
     new_kwargs.pop("messages", None)
@@ -881,6 +888,13 @@ def handle_genai_tools(
     }
 
     generation_config = update_genai_kwargs(new_kwargs, base_config)
+
+    # Preserve labels from original config if they exist
+    original_config = new_kwargs.get("config")
+    if isinstance(original_config, dict) and "labels" in original_config:
+        generation_config["labels"] = original_config["labels"]
+    elif hasattr(original_config, "labels") and original_config.labels:
+        generation_config["labels"] = original_config.labels
 
     new_kwargs["config"] = types.GenerateContentConfig(**generation_config)
     new_kwargs["contents"] = convert_to_genai_messages(new_kwargs["messages"])
