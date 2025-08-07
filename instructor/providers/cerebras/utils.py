@@ -47,23 +47,47 @@ def handle_cerebras_tools(
     """
     Handle Cerebras tools mode.
 
+    Cerebras API only supports 'auto' or 'none' for tool_choice.
+    We use 'auto' and add a system message to encourage tool usage.
+
     Kwargs modifications:
     - Adds: "tools" (list with function schema)
-    - Adds: "tool_choice" (forced function call)
+    - Adds: "tool_choice" ("auto" - Cerebras doesn't support forced function calls)
+    - Adds: "messages" (system instruction to encourage tool usage)
     - Validates: stream=False
     """
     if new_kwargs.get("stream", False):
         raise ValueError("Stream is not supported for Cerebras Tool Calling")
+    
+    schema = generate_openai_schema(response_model)
     new_kwargs["tools"] = [
         {
             "type": "function",
-            "function": generate_openai_schema(response_model),
+            "function": schema,
         }
     ]
-    new_kwargs["tool_choice"] = {
-        "type": "function",
-        "function": {"name": generate_openai_schema(response_model)["name"]},
-    }
+    # Cerebras API only accepts 'auto' or 'none' for tool_choice
+    new_kwargs["tool_choice"] = "auto"
+    
+    # Add system message to encourage using the specific tool
+    tool_instruction = (
+        f"You must use the {schema['name']} function to structure your response. "
+        f"Call this function with the appropriate parameters based on the user's request."
+    )
+    
+    # Add system instruction to the beginning of messages
+    messages = new_kwargs.get("messages", [])
+    system_msg = {"role": "system", "content": tool_instruction}
+    
+    # Insert system message at the beginning or combine with existing system message
+    if messages and messages[0].get("role") == "system":
+        # Combine with existing system message
+        messages[0]["content"] = messages[0]["content"] + "\n\n" + tool_instruction
+    else:
+        # Insert new system message at the beginning
+        messages.insert(0, system_msg)
+    
+    new_kwargs["messages"] = messages
     return response_model, new_kwargs
 
 
