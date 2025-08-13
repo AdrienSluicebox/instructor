@@ -220,7 +220,15 @@ def update_genai_kwargs(
     """
     Update keyword arguments for google.genai package from OpenAI format.
     """
-    from google.genai.types import HarmBlockThreshold, HarmCategory
+    # Handle imports - try google.genai.types first, fallback to google.generativeai.types
+    try:
+        from google.genai.types import HarmBlockThreshold, HarmCategory  # type: ignore
+    except ImportError:
+        # Fallback for backward compatibility
+        from google.generativeai.types import (  # type: ignore
+            HarmBlockThreshold,
+            HarmCategory,
+        )
 
     new_kwargs = kwargs.copy()
 
@@ -256,6 +264,10 @@ def update_genai_kwargs(
     ]
 
     for category in supported_categories:
+        # Double-check: Skip any image-related categories that might have slipped through
+        if category.name.startswith("HARM_CATEGORY_IMAGE_"):
+            continue
+            
         threshold = safety_settings.get(category, HarmBlockThreshold.OFF)
         base_config["safety_settings"].append(
             {
